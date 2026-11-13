@@ -46,4 +46,4 @@ def test_load_dataset(tmp_path):
     assert df_result['IsHighUtilization'].tolist() == [0, 1, 0]
 
     # Verify UnsecuredCreditLines calculation
-    assert df_result['UnsecuredCreditLines'].tolist == [5, 8, 4]
+    assert df_result['UnsecuredCreditLines'].tolist() == [5, 8, 4]
