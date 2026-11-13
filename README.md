@@ -1,4 +1,4 @@
-# End-to-End Credit Risk Scorecard & Production Lending Engine
+# Credit Risk Scorecard & Production Lending Engine
 
 A production-grade credit risk modeling and automated decisioning pipeline. This project covers the full end-to-end data science lifecycle: from exploratory data analysis and rigorous feature engineering to logistic regression modeling, FICO-style integer scorecard point allocation, P&L-driven financial threshold optimization, and real-time FastAPI deployment.
 
