@@ -37,3 +37,81 @@ Rather than relying on arbitrary statistical cutoffs (like 0.50), the model eval
 * **Default Loss:** Factorized Loss Given Default ($LGD$) on defaulted principals.
 * **Threshold Sweep:** Scanned probability thresholds across a fine grid (`0.01` to `0.90`) to locate the global maximum profit point at **0.6491**.
 
+---
+
+## Getting Started & Installation
+
+### 1. Clone the Repository & Set Up Virtual Environment
+
+```bash
+git clone https://github.com/your-username/credit-risk-engine.git
+cd credit-risk-engine
+python3 -m venv .venv
+source .venv/bin/activate 
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install fastapi uvicorn scikit-learn pandas numpy pydantic joblib
+```
+
+---
+
+## Running the Production Scoring API
+
+To spin up the local ASGI server using Uvicorn:
+
+```bash
+uvicorn app:app --reload
+```
+
+Once running, access the interactive **Swagger UI** at:
+
+**http://127.0.0.1:8000/docs**
+
+---
+
+## Example API Request & ML Inference
+
+Send a `POST` request to `/score`. The FastAPI backend parses the payload, maps feature keys, runs inference through the scikit-learn pipeline, calculates the integer credit score, and evaluates the optimized `0.6491` P&L threshold.
+
+### Request Body (`application/json`)
+
+```json
+{
+  "Log_Utilization": 0.15,
+  "NumberOfTimes90DaysLate": 0,
+  "TotalPastDueCount": 0,
+  "age": 42.0,
+  "NumberOfTime60_89DaysPastDueNotWorse": 0,
+  "NumberOfTime30_59DaysPastDueNotWorse": 0,
+  "IncomePerDependent": 25000.0,
+  "NumberRealEstateLoansOrLines": 1,
+  "NumberOfOpenCreditLinesAndLoans": 6,
+  "Log_DebtRatio": 0.32,
+  "IsHighUtilization": 0,
+  "Log_MonthlyIncome": 10.45,
+  "NumberOfDependents": 2
+}
+```
+
+### Response Body
+
+```json
+{
+  "default_probability": 0.1887,
+  "credit_score": 477,
+  "decision": "APPROVE",
+  "threshold_used": 0.6491
+}
+```
+
+---
+
+## Project Summary
+
+This project demonstrates the complete development and deployment of an interpretable credit risk scoring system, bridging traditional statistical modeling with practical financial decision-making and production API engineering.
+
+It combines predictive performance, explainable scorecard construction, profitability optimization, and real-time inference into a unified lending decision engine.
+
