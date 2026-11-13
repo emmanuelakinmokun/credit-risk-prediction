@@ -19,7 +19,7 @@ def test_load_dataset(tmp_path):
     csv_file = tmp_path/'sample_data.csv'
     df_input.to_csv(csv_file, index=False)
 
-    # Run the function
+    # Run the load_dataset function
     df_result = load_dataset(str(csv_file))
 
     # Assertions
