@@ -37,4 +37,3 @@ Rather than relying on arbitrary statistical cutoffs (like 0.50), the model eval
 * **Default Loss:** Factorized Loss Given Default ($LGD$) on defaulted principals.
 * **Threshold Sweep:** Scanned probability thresholds across a fine grid (`0.01` to `0.90`) to locate the global maximum profit point at **0.6491**.
 
----
