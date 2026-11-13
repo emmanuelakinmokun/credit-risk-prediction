@@ -1,41 +1,54 @@
 from fastapi import FastAPI, HTTPException
 import joblib
 import pandas as pd
-import numpy as np
 from pydantic import BaseModel
+from pathlib import Path
 
-# 1. Initialize FastAPI app
-app = FastAPI(title="Credit Risk Scorecard API", version="1.0")
+# Initialize FastAPI app
+app = FastAPI(
+    title="Credit Risk Scorecard API",
+    version="1.0.0",
+    description="Production-grade credit scoring and P&L optimization decision engine."
+)
 
-# 2. Load serialized model package on startup
-model_package = joblib.load('/home/nika/Documents/crp/models/credit_scorecard_model.pkl')
+# Load serialized model package on startup
+MODEL_PATH = Path(__file__).resolve().parent / "models" / "credit_scorecard_model.pkl"
+
+if not MODEL_PATH.exists():
+    raise RuntimeError(f"Model artifact not found at {MODEL_PATH}. Please run training script first.")
+
+model_package = joblib.load(MODEL_PATH)
 pipeline = model_package['pipeline']
 features = model_package['features']
 threshold = model_package['optimal_threshold']
 
-# 3. Define expected incoming JSON request schema
+# Pydantic Schema with JSON field validation
 class ApplicantData(BaseModel):
-    Log_Utilization: float
-    NumberOfTimes90DaysLate: int
-    TotalPastDueCount: int
     age: float
-    NumberOfTime60_89DaysPastDueNotWorse: int
-    NumberOfTime30_59DaysPastDueNotWorse: int
-    IncomePerDependent: float
-    NumberRealEstateLoansOrLines: int
     NumberOfOpenCreditLinesAndLoans: int
-    Log_DebtRatio: float
-    IsHighUtilization: int
-    Log_MonthlyIncome: float
+    NumberRealEstateLoansOrLines: int
     NumberOfDependents: int
+    Log_MonthlyIncome: float
+    Log_Utilization: float
+    Log_DebtRatio: float
+    TotalPastDueCount: int
+    IncomePerDependent: float
+    IsHighUtilization: int
+    NumberOfTime30_59DaysPastDueNotWorse: int
+    NumberOfTime60_89DaysPastDueNotWorse: int
+    NumberOfTimes90DaysLate: int
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "threshold_loaded": threshold}
 
 @app.post("/score")
 def score_applicant(data: ApplicantData):
     try:
-        # 1. Convert Pydantic model to a dictionary
-        input_dict = data.dict()
+        # Use model_dump() for Pydantic v2
+        input_dict = data.model_dump()
         
-        # 2. Map underscore keys back to the original hyphenated feature names expected by the model
+        # Map underscore keys back to the original hyphenated feature names expected by the pipeline
         key_mapping = {
             "NumberOfTime30_59DaysPastDueNotWorse": "NumberOfTime30-59DaysPastDueNotWorse",
             "NumberOfTime60_89DaysPastDueNotWorse": "NumberOfTime60-89DaysPastDueNotWorse"
@@ -45,16 +58,18 @@ def score_applicant(data: ApplicantData):
             if old_key in input_dict:
                 input_dict[new_key] = input_dict.pop(old_key)
         
-        # 3. Create DataFrame using the exact feature order the pipeline was trained on
+        # Align features in exact training order
         input_df = pd.DataFrame([input_dict])[features]
         
-        # 4. Predict probability and calculate score
+        # Predict probability of default
         default_prob = pipeline.predict_proba(input_df)[0][1]
         
+        # Calculate FICO-style score mapping
         base_score = 505.74
         fico_score = int(base_score - (default_prob * 150))
         fico_score = max(300, min(850, fico_score))
         
+        # Evaluate decision against P&L optimized threshold
         decision = "APPROVE" if default_prob < threshold else "DECLINE"
         
         return {
