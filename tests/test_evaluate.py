@@ -4,6 +4,7 @@ from app import app
 
 client = TestClient(app)
 
+# Test the API health endpoint to ensure the microservice is running and has successfully loaded the optimized model and P&L threshold.
 def test_health_check():
     response = client.get("/health")
     assert response.status_code == 200
@@ -11,6 +12,7 @@ def test_health_check():
     assert data["status"] == "healthy"
     assert "threshold_loaded" in data
 
+# Test the /score endpoint with a low-risk borrower profile to verify that the pipeline correctly calculates the default probability, maps it to a FICO-style score, and returns an 'APPROVE' decision.
 def test_score_applicant_approved():
     payload = {
         "age": 42.0,
