@@ -69,7 +69,7 @@ def score_applicant(data: ApplicantData):
         fico_score = int(base_score - (default_prob * 150))
         fico_score = max(300, min(850, fico_score))
         
-        # Evaluate decision against P&L optimized threshold
+        # Evaluate decision against P&L optimized threshold..
         decision = "APPROVE" if default_prob < threshold else "DECLINE"
         
         return {
